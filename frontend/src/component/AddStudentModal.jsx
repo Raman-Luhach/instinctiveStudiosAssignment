@@ -43,7 +43,7 @@ export function AddStudentModal({ open, onClose, onSuccess }) {
       }
 
       toast.success('Student added successfully');
-      onSuccess();
+      // onSuccess();
     } catch (error) {
       console.error('Error creating student:', error);
       setError(error instanceof Error ? error.message : 'Failed to create student');
