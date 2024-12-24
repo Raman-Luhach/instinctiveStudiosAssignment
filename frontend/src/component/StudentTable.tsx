@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { Student } from '../types/student'
+import { API_BASE_URL } from '../../config/api'
 
 export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
   const [students, setStudents] = useState<Student[]>([])
@@ -10,12 +11,15 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchStudents = async () => {
     try {
-      let url = 'http://localhost:3000/students'
+      setIsLoading(true)
+      setError(null)
+      let url = `${API_BASE_URL}`
       if (selectedYear && selectedClass) {
-        url += `?cohort=${selectedYear}&course=${selectedClass}`
+        url += `?cohort=${encodeURIComponent(selectedYear)}&course=${encodeURIComponent(selectedClass)}`
       }
 
       const response = await fetch(url)
@@ -24,9 +28,10 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
       const data = await response.json()
       setStudents(data)
       setFilteredStudents(data)
-      setIsLoading(false)
     } catch (error) {
       console.error('Error fetching students:', error)
+      setError('Failed to load students. Please try again later.')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -44,7 +49,28 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
   }
 
   if (isLoading) {
-    return <div className="bg-white rounded-lg shadow p-4">Loading...</div>
+    return (
+        <div className="bg-white rounded-lg shadow p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
+    )
+  }
+
+  if (error) {
+    return (
+        <div className="bg-white rounded-lg shadow p-8">
+          <div className="text-red-500 text-center">{error}</div>
+          <Button
+              onClick={fetchStudents}
+              variant="outline"
+              className="mt-4 mx-auto block"
+          >
+            Retry
+          </Button>
+        </div>
+    )
   }
 
   return (
@@ -110,6 +136,13 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
                   </td>
                 </tr>
             ))}
+            {filteredStudents.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No students found
+                  </td>
+                </tr>
+            )}
             </tbody>
           </table>
         </div>

@@ -6,12 +6,9 @@ import { useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CreateStudentInput } from "../types/student"
+import { API_BASE_URL } from "../../config/api"
+import { toast } from "sonner"
 
-interface AddStudentModalProps {
-  open: boolean
-  onClose: () => void
-  onSuccess: () => void
-}
 
 const CLASSES = {
   "CBSE 9": ["Mathematics", "Science", "English", "Social Studies", "Hindi"],
@@ -26,13 +23,15 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
     courses: []
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
     try {
-      const response = await fetch('http://localhost:3000/create', {
+      const response = await fetch(`${API_BASE_URL}/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,13 +40,16 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create student')
+        const errorData = await response.json().catch(() => null)
+        throw new Error(errorData?.message || 'Failed to create student')
       }
 
-      onSuccess()
-      onClose()
+      toast.success('Student added successfully')
+
     } catch (error) {
       console.error('Error creating student:', error)
+      setError(error instanceof Error ? error.message : 'Failed to create student')
+      toast.error('Failed to add student')
     } finally {
       setIsSubmitting(false)
     }
@@ -66,13 +68,37 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
     })
   }
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      cohort: 'AY 2024-25',
+      courses: []
+    })
+    setSelectedClass('')
+    setError(null)
+  }
+
   return (
-      <Dialog open={open} onOpenChange={onClose}>
+      <Dialog
+          open={open}
+          onOpenChange={(open) => {
+            if (!open) {
+              resetForm()
+            }
+            onClose()
+          }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Add New Student</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+                <div className="text-sm text-red-500 p-2 bg-red-50 rounded">
+                  {error}
+                </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="name">Student Name</Label>
               <Input
@@ -137,7 +163,14 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
             )}
 
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={onClose} type="button">
+              <Button
+                  variant="outline"
+                  onClick={() => {
+                    resetForm()
+                    onClose()
+                  }}
+                  type="button"
+              >
                 Cancel
               </Button>
               <Button
@@ -152,3 +185,4 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
       </Dialog>
   )
 }
+
