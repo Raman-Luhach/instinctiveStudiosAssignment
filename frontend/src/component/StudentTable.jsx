@@ -1,52 +1,51 @@
-import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
-import { Student } from '../types/student'
-import { API_BASE_URL } from '../../config/api'
+import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { API_BASE_URL } from '../../config/api';
 
-export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
-  const [students, setStudents] = useState<Student[]>([])
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([])
-  const [selectedYear, setSelectedYear] = useState('')
-  const [selectedClass, setSelectedClass] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export function StudentTable({ onAddStudent }) {
+  const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchStudents = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      let url = `${API_BASE_URL}`
+      setIsLoading(true);
+      setError(null);
+      let url = `${API_BASE_URL}`;
       if (selectedYear && selectedClass) {
-        url += `?cohort=${encodeURIComponent(selectedYear)}&course=${encodeURIComponent(selectedClass)}`
+        url += `?cohort=${encodeURIComponent(selectedYear)}&course=${encodeURIComponent(selectedClass)}`;
       }
 
-      const response = await fetch(url)
-      if (!response.ok) throw new Error('Failed to fetch students')
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch students');
 
-      const data = await response.json()
-      setStudents(data)
-      setFilteredStudents(data)
+      const data = await response.json();
+      setStudents(data);
+      setFilteredStudents(data);
     } catch (error) {
-      console.error('Error fetching students:', error)
-      setError('Failed to load students. Please try again later.')
+      console.error('Error fetching students:', error);
+      setError('Failed to load students. Please try again later.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchStudents()
-  }, [selectedYear, selectedClass])
+    fetchStudents();
+  }, [selectedYear, selectedClass]);
 
-  const handleYearChange = (year: string) => {
-    setSelectedYear(year)
-  }
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+  };
 
-  const handleClassChange = (className: string) => {
-    setSelectedClass(className)
-  }
+  const handleClassChange = (className) => {
+    setSelectedClass(className);
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +54,7 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </div>
-    )
+    );
   }
 
   if (error) {
@@ -70,7 +69,7 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
             Retry
           </Button>
         </div>
-    )
+    );
   }
 
   return (
@@ -147,6 +146,5 @@ export function StudentTable({ onAddStudent }: { onAddStudent: () => void }) {
           </table>
         </div>
       </div>
-  )
+  );
 }
-

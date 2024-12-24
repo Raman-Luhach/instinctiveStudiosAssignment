@@ -1,34 +1,32 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useState } from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { CreateStudentInput } from "../types/student"
-import { API_BASE_URL } from "../../config/api"
-import { toast } from "sonner"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { API_BASE_URL } from "../../config/api";
 
 const CLASSES = {
   "CBSE 9": ["Mathematics", "Science", "English", "Social Studies", "Hindi"],
   "CBSE 10": ["Mathematics", "Science", "English", "Social Studies", "Hindi"]
-}
+};
 
-export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalProps) {
-  const [selectedClass, setSelectedClass] = useState<keyof typeof CLASSES | ''>('')
-  const [formData, setFormData] = useState<CreateStudentInput>({
+export function AddStudentModal({ open, onClose, onSuccess }) {
+  const [selectedClass, setSelectedClass] = useState('');
+  const [formData, setFormData] = useState({
     name: '',
     cohort: 'AY 2024-25',
     courses: []
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       const response = await fetch(`${API_BASE_URL}/create`, {
@@ -37,55 +35,55 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        throw new Error(errorData?.message || 'Failed to create student')
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Failed to create student');
       }
 
-      toast.success('Student added successfully')
-
+      toast.success('Student added successfully');
+      onSuccess();
     } catch (error) {
-      console.error('Error creating student:', error)
-      setError(error instanceof Error ? error.message : 'Failed to create student')
-      toast.error('Failed to add student')
+      console.error('Error creating student:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create student');
+      toast.error('Failed to add student');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleSubjectToggle = (subject: string) => {
-    const fullCourseName = `${selectedClass} ${subject}`
+  const handleSubjectToggle = (subject) => {
+    const fullCourseName = `${selectedClass} ${subject}`;
     setFormData(prev => {
-      const exists = prev.courses.includes(fullCourseName)
+      const exists = prev.courses.includes(fullCourseName);
       return {
         ...prev,
         courses: exists
             ? prev.courses.filter(c => c !== fullCourseName)
             : [...prev.courses, fullCourseName]
-      }
-    })
-  }
+      };
+    });
+  };
 
   const resetForm = () => {
     setFormData({
       name: '',
       cohort: 'AY 2024-25',
       courses: []
-    })
-    setSelectedClass('')
-    setError(null)
-  }
+    });
+    setSelectedClass('');
+    setError(null);
+  };
 
   return (
       <Dialog
           open={open}
           onOpenChange={(open) => {
             if (!open) {
-              resetForm()
+              resetForm();
             }
-            onClose()
+            onClose();
           }}
       >
         <DialogContent className="sm:max-w-[425px]">
@@ -129,9 +127,9 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
               <Label htmlFor="class">Class</Label>
               <Select
                   value={selectedClass}
-                  onValueChange={(value: keyof typeof CLASSES) => {
-                    setSelectedClass(value)
-                    setFormData(prev => ({ ...prev, courses: [] }))
+                  onValueChange={(value) => {
+                    setSelectedClass(value);
+                    setFormData(prev => ({ ...prev, courses: [] }));
                   }}
               >
                 <SelectTrigger id="class">
@@ -166,8 +164,8 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
               <Button
                   variant="outline"
                   onClick={() => {
-                    resetForm()
-                    onClose()
+                    resetForm();
+                    onClose();
                   }}
                   type="button"
               >
@@ -183,6 +181,5 @@ export function AddStudentModal({ open, onClose, onSuccess }: AddStudentModalPro
           </form>
         </DialogContent>
       </Dialog>
-  )
+  );
 }
-
